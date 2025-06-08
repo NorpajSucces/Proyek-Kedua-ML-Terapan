@@ -220,6 +220,7 @@ Output: <br>
 ## Evaluasi
 * Rekomendasi pertama: Menghasilkan output yang memuaskan dan sesuai dengan input judul film
 * Rekomendasi kedua: Menghasilkan output yang memuaskan dan sesuai dengan input genre
+* Output yang dihasilkan dari rekomendasi 1 dan 2 sama
 
 # 6. Kesimpulan
 
