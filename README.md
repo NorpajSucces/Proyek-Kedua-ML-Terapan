@@ -6,7 +6,7 @@
 
 **Email:** zhafrankuncoro@gmail.com
 
-# 1.  Domain Proyek
+# 1. Project Overview
 
 ## Latar Belakang
 Rekomendasi film merupakan fitur utama dalam berbagai layanan streaming modern, seperti Netflix dan Disney+, untuk meningkatkan pengalaman pengguna. Dengan jumlah film yang terus bertambah, pengguna membutuhkan sistem yang dapat membantu mereka menemukan film yang sesuai dengan preferensi pribadi mereka.
@@ -22,9 +22,11 @@ Proyek ini bertujuan untuk membangun sistem rekomendasi film berbasis Content-Ba
 
 
 ## Goals
-Membangun sistem rekomendasi film berbasis genre yang mampu memberikan Top-N rekomendasi kepada pengguna berdasarkan:
-* Judul film
-* Genre film pilihan
+1. Meningkatkan Pengalaman Pengguna dalam Menemukan Film <br>
+Membangun sistem yang mampu memberikan rekomendasi film yang relevan dan dipersonalisasi kepada pengguna berdasarkan judul film yang pernah ditonton atau genre film yang mereka sukai untuk mengatasi kebingungan akibat banyaknya pilihan.
+
+2. Mengatasi Masalah Cold-Start untuk Pengguna Baru <br>
+Mengembangkan model rekomendasi yang dapat berfungsi secara efektif sejak awal bagi pengguna baru, tanpa memerlukan data riwayat tontonan atau rating sebelumnya.
 
 ## Soluation Statement
 Pendekatan yang digunakan adalah Content-Based Filtering. Sistem akan:
@@ -101,7 +103,7 @@ film_final
 Output: <br> ![image](https://github.com/user-attachments/assets/390efe4b-aca4-4b07-b5c6-d89c70b68bd6) <br>
 Secara keseluruhan, kode ini mempersiapkan data genre film untuk digunakan dalam model rekomendasi berbasis konten dengan mengubah representasi string genre menjadi representasi numerik dalam bentuk vektor one-hot encoding. Representasi vektor ini kemudian digunakan untuk menghitung kesamaan antar film berdasarkan genre mereka.
 
-# 5. Model
+# 5. Modeling
 `Content-Based Filtering` adalah teknik sistem rekomendasi yang menyarankan item kepada pengguna berdasarkan kemiripan konten atau atribut dari item-item yang pernah disukai oleh pengguna tersebut di masa lalu.
 <br> <br>
 
@@ -217,12 +219,12 @@ Output: <br>
   * Rekomendasi terbatas pada genre yang mirip
   * Tidak mempertimbangkan popularitas atau kualitas film
 
-## Evaluasi
+# 6. Evaluasi
 * Rekomendasi pertama: Menghasilkan output yang memuaskan dan sesuai dengan input judul film
 * Rekomendasi kedua: Menghasilkan output yang memuaskan dan sesuai dengan input genre
 * Output yang dihasilkan dari rekomendasi 1 dan 2 sama
 
-# 6. Kesimpulan
+# 7. Kesimpulan
 
 Sistem rekomendasi film berbasis Content-Based Filtering berhasil dikembangkan dengan menggunakan informasi genre dari dataset movies.csv. Sistem ini mampu memberikan rekomendasi berdasarkan judul film atau genre yang dipilih oleh pengguna.
 Kedepannya, sistem dapat ditingkatkan dengan menggabungkan pendekatan Collaborative Filtering atau menerapkan Hybrid Model untuk menghasilkan rekomendasi yang lebih personal dan akurat.
