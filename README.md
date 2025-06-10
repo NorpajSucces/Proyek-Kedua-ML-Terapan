@@ -81,26 +81,8 @@ output: <br>
 3. Melakukan One Hot Encoding
 * Tujuan: Tujuannya adalah untuk mengubah data kategori (seperti nama genre film: "Action", "Comedy", "Drama") menjadi format yang dapat diproses oleh algoritma machine learning. Banyak algoritma machine learning membutuhkan input berupa angka, bukan teks kategori.
 * Cara Kerja: Untuk setiap nilai unik dalam sebuah kolom kategori, one-hot encoding akan membuat kolom baru. Jika sebuah baris memiliki nilai kategori tersebut, maka kolom baru yang sesuai akan diisi dengan angka 1, dan kolom-kolom lainnya akan diisi dengan 0.
-```
-# Pisahkan genre menjadi list
-film_final['genres'] = film_final['genres'].str.split('|')
 
-# Identifikasi genre unik
-all_genres = set()
-for genres in film_final['genres']:
-    all_genres.update(genres)
-all_genres = sorted(list(all_genres))  # Urutkan untuk konsistensi
-
-# Fungsi untuk membuat vektor one-hot encoding
-def genres_to_vector(genres):
-    return [1 if genre in genres else 0 for genre in all_genres]
-
-# Terapkan one-hot encoding
-film_final['genre_vector'] = film_final['genres'].apply(genres_to_vector)
-
-film_final
-```
-Output: <br> ![image](https://github.com/user-attachments/assets/390efe4b-aca4-4b07-b5c6-d89c70b68bd6) <br>
+Output hasil One Hot Encoding: <br> ![image](https://github.com/user-attachments/assets/390efe4b-aca4-4b07-b5c6-d89c70b68bd6) <br>
 Secara keseluruhan, kode ini mempersiapkan data genre film untuk digunakan dalam model rekomendasi berbasis konten dengan mengubah representasi string genre menjadi representasi numerik dalam bentuk vektor one-hot encoding. Representasi vektor ini kemudian digunakan untuk menghitung kesamaan antar film berdasarkan genre mereka.
 
 # 5. Modeling
@@ -121,93 +103,18 @@ Alasan utama melakukan konversi ke sparse matrix adalah efisiensi memori dan kom
 
 ## 5.1 Rekomendasi Berdasarkan Input Film
 Kode ini mendefinisikan sebuah fungsi Python bernama `recommend_movies` yang bertujuan untuk memberikan rekomendasi film berdasarkan kesamaan genre dengan film input.
-```
-# Fungsi untuk merekomendasikan film
-def recommend_movies(movie_title, df, genre_matrix, top_n=5):
-    try:
-        # Cari indeks film yang dipilih
-        movie_idx = df[df['title'] == movie_title].index[0]
-        
-        # Ambil vektor genre dari film yang dipilih
-        movie_vector = genre_matrix[movie_idx]
-        
-        # Hitung cosine similarity dengan semua film
-        similarities = cosine_similarity(movie_vector, genre_matrix)[0]
-        
-        # Dapatkan indeks film dengan kemiripan tertinggi
-        similar_indices = similarities.argsort()[-top_n-1:-1][::-1]  # Ambil top_n, abaikan film itu sendiri
-        
-        # Kembalikan judul, genre, dan skor kemiripan
-        recommendations = df.iloc[similar_indices][['title', 'genres']].copy()
-        recommendations['similarity_score'] = similarities[similar_indices]
-        
-        return recommendations
-    except IndexError:
-        return f"Film '{movie_title}' tidak ditemukan di dataset."
-```
-```
-# Contoh penggunaan
-movie_title = "Jumanji (1995)"
-print(f"Rekomendasi untuk '{movie_title}':")
-recommendations = recommend_movies(movie_title, film_final, sparse_genre_matrix, top_n=10)
-recommendations
-```
 <br>
 
-Kode ini adalah contoh cara memanggil dan menggunakan fungsi `recommend_movies`.
+Contoh output penggunaan dari fungsi `recommend_movies`. Dengan input `movie_title = "Jumanji (1995)"`
 <br>
-
 
 Outuput: <br>
 ![image](https://github.com/user-attachments/assets/ccba94c1-b136-4daf-bd44-5cc4b824d2c1)
 
 ## 5.2 Rekomendasi Berdasarkan Input Genre
-Kode ini mendefinisikan fungsi Python lain bernama `recommend_movies_by_genres`. Fungsi ini dirancang untuk memberikan rekomendasi film berdasarkan genre yang Anda masukkan, bukan berdasarkan judul film tertentu. Ini memberikan fleksibilitas lain dalam cara pengguna bisa mendapatkan rekomendasi.
+Mendefinisikan fungsi Python lain bernama `recommend_movies_by_genres`. Fungsi ini dirancang untuk memberikan rekomendasi film berdasarkan genre yang Anda masukkan, bukan berdasarkan judul film tertentu. Ini memberikan fleksibilitas lain dalam cara pengguna bisa mendapatkan rekomendasi.
 
-```
-# Fungsi rekomendasi Berdasarkan genre
-def recommend_movies_by_genres(input_genres, df, genre_matrix, all_genres, top_n=5, exact_match=False):
-    try:
-        # Ubah input genre menjadi list (misalnya, "Action, Comedy" -> ["Action", "Comedy"])
-        input_genres = [genre.strip() for genre in input_genres.split(',')]
-        
-        # Validasi genre
-        invalid_genres = [genre for genre in input_genres if genre not in all_genres]
-        if invalid_genres:
-            return f"Genre tidak valid: {invalid_genres}. Genre yang tersedia: {all_genres}"
-        
-        # Buat vektor one-hot encoding untuk input genre
-        input_vector = np.array([[1 if genre in input_genres else 0 for genre in all_genres]])
-        
-        # Hitung cosine similarity antara input dan semua film
-        similarities = cosine_similarity(input_vector, genre_matrix)[0]
-        
-        # Jika exact_match=True, hanya rekomendasikan film yang mengandung semua genre input
-        if exact_match:
-            mask = df['genres'].apply(lambda x: all(genre in x for genre in input_genres))
-            if not mask.any():
-                return f"Tidak ada film yang mengandung semua genre: {input_genres}"
-            similar_indices = similarities[mask].argsort()[-top_n:][::-1]
-            recommendations = df[mask].iloc[similar_indices][['title', 'genres']].copy()
-            recommendations['similarity_score'] = similarities[mask][similar_indices]
-        else:
-            # Ambil top_n film dengan kemiripan tertinggi
-            similar_indices = similarities.argsort()[-top_n:][::-1]
-            recommendations = df.iloc[similar_indices][['title', 'genres']].copy()
-            recommendations['similarity_score'] = similarities[similar_indices]
-        
-        return recommendations
-    except Exception as e:
-        return f"Terjadi kesalahan: {str(e)}"
-```
-```
-# Rekomendasi Berdasarkan genre
-input_genres = "Adventure, Children, Fantasy"
-print(f"\nRekomendasi untuk genre: {input_genres}")
-recommendations_by_genres = recommend_movies_by_genres(input_genres, film_final, sparse_genre_matrix, all_genres, top_n=10, exact_match=False)
-recommendations_by_genres
-```
-Kode ini adalah contoh penggunaan dari fungsi `recommend_movies_by_genres`
+Contoh output penggunaan dari fungsi `recommend_movies_by_genres`. Dengan input `input_genres = "Adventure, Children, Fantasy"`
 Output: <br>
 ![image](https://github.com/user-attachments/assets/dc93b307-6906-4bda-a507-2df5bc5e0bc7)
 
@@ -219,10 +126,35 @@ Output: <br>
   * Rekomendasi terbatas pada genre yang mirip
   * Tidak mempertimbangkan popularitas atau kualitas film
 
-# 6. Evaluasi
-* Rekomendasi pertama: Menghasilkan output yang memuaskan dan sesuai dengan input judul film
-* Rekomendasi kedua: Menghasilkan output yang memuaskan dan sesuai dengan input genre
-* Output yang dihasilkan dari rekomendasi 1 dan 2 sama
+# 6. Evaluation
+Pengujian kuantitatif dilakukan untuk mengukur kinerja model secara objektif menggunakan metrik Precision@20 dan Recall@20. Pengujian ini dilakukan untuk kedua skenario rekomendasi: berdasarkan input judul film dan input genre. <br>
+1. Rekomendasi pertama: Menghasilkan output yang memuaskan dan sesuai dengan input judul film
+Pengujian dilakukan dengan mengambil contoh kasus pada film 'Jumanji (1995)'. Hasil yang didapatkan adalah sebagai berikut:
+
+| Metrik | Nilai |
+| :--- | :---: |
+| Precision@20 | 95.0% |
+| Recall@20 | 82.6% |
+
+<br>
+
+Analisis: Nilai presisi yang sangat tinggi (95.0%) menunjukkan akurasi model dalam memberikan rekomendasi yang genrenya paling serupa. Skor recall sebesar 82.6% juga menunjukkan bahwa model mampu menjangkau sebagian besar dari total film yang paling relevan di dalam dataset. <br>
+![image](https://github.com/user-attachments/assets/a1133d60-2af3-49bc-b136-c14456cc969e)
+
+2. Rekomendasi kedua: Menghasilkan output yang memuaskan dan sesuai dengan input genre
+Pengujian dilakukan dengan memberikan input genre "Adventure, Children, Fantasy". Hasil yang didapatkan adalah: <br> <br>
+
+| Metrik | Nilai |
+| :--- | :---: |
+| Precision@20 | 100.0% |
+| Recall@20 | 16.1% |
+
+<br> 
+
+Analisis: Presisi 100% membuktikan bahwa sistem sangat andal dalam merekomendasikan film yang sesuai dengan kategori genre yang diminta. Nilai recall sebesar 16.1% merupakan hal yang wajar dalam sistem rekomendasi Top-K, yang mengindikasikan bahwa daftar 20 teratas menampilkan sebagian dari total keseluruhan film relevan yang ada.
+
+![image](https://github.com/user-attachments/assets/79b2a4fc-4c9b-4c23-9542-7bf3dd124b83)
+
 
 # 7. Kesimpulan
 
